@@ -28,7 +28,7 @@ Desired linear and angular velocity.
 Number of encoder ticks per meter of travel.
 
 `~wheel_separation` (double)::
-Distance between the two wheels (m).
+Distance between the two wheels (meters).
 
 `~rate` (int, default: 50)::
 The rate that the output velocity target messages will be published (Hz).
@@ -45,7 +45,7 @@ Listens for wheel movement and rates and publishes the transform between the odo
 `~odom` -- (nav_msgs/Odometry)::
 The robot odometry -- the current robot pose.
 
-`~tf::
+`~tf`::
 The transform between the odometry frame and the robot frame.
 
 ==== Subscribed Topics
@@ -73,6 +73,10 @@ Distance between the two wheels (m).
 `~rate` (double, default 10.0)::
 The rate at which the `tf` and `odom` topics are published (Hz).
 
+`~timeout` (double, default 0.2)::
+The amount of time to continue publishing desired wheel rates after receiving a twist message (seconds).
+If set to zero, wheel velocities will be sent only when a new twist message is received.
+
 `~base_frame_id` (string, default: "base_link")::
 The name of the base frame of the robot. 
 
@@ -88,3 +92,47 @@ The min and max value the encoder should output. Used to calculate odometry when
 
 `~wheel_high_wrap` (int, default: 0.7 * (encoder_max - encoder_min + 1) + encoder_min)::
 If a reading is greater than wheel_high_wrap and the next reading is less than wheel_low_wrap, then the reading has wrapped around in the positive direction, and the odometry will be calculated appropriately. The same concept applies for the negative direction.
+
+=== 3. goal_to_twist
+
+Listens for new goal poses and computes velocities needed to achieve the goal.
+
+==== Published Topics
+
+`~distance_to_goal` (std_msgs/Float32)::
+Distance to the goal position (meters).
+
+`~cmd_vel` (geometry_msgs/Twist)::
+Desired linear and angular velocity to move toward the goal pose.
+
+==== Subscribed Topics
+
+`~goal` (geometry_msgs/Pose)::
+Desired goal pose.
+
+==== Parameters
+
+`~rate` (float, default: 0.1)::
+Rate at which to publish desired velocities.
+
+`~goal_linear_tolerance` (float, default: 0.1)::
+The distance from the goal at which the robot is assumed to have accomplished the goal position (meters).
+
+`~goal_angular_tolerance` (float, default: 0.087)::
+The difference between robot angle and goal pose angle at which the robot is assumed to have
+accomplished the goal attitude (radians). Default value is approximately 5 degrees.
+
+`~max_linear_velocity` (float, default: 0.2)::
+The maximum linear velocity toward the goal (meters/second).
+
+`~max_angular_velocity` (float, default: 1.5)::
+The maximum angular velocity (radians/second).
+
+`~velocity_linear_ramp_time` (float, default: 0.25)::
+The desired ramp time between zero velocity and max linear velocity (seconds).
+The same ramp time is used for starting and stopping the robot.
+
+`~velocity_angular_ramp_time` (float, default: 0.25)::
+The desired ramp time between zero velocity and max angular velocity (seconds).
+The same ramp time is used for starting and stopping the robot.
+
