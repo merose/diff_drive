@@ -140,14 +140,16 @@ Proportionality constant for angle to goal position. Higher values make the robo
 `~Kb` (float: default: 1.5)::
 Proportionality constant for angle to goal pose direction. Higher values make the robot turn more quickly toward the goal pose direction.
 
-The control law for determining the linear and angular velocity to move toward the goal works as follows. Let ~d~ be the distance to the goal. Let ~a~ be the angle between the robot heading and the goal position, where left is positive. If the goal is behind the robot, the robot will move backward, so ~a~ is always between -90 and 90 degrees. Let ~b~ be the angle between the goal direction and the final pose angle, where left is positive. Then the robot linear and angular velocities are calculated like this:
+The control law for determining the linear and angular velocity to move toward the goal works as follows. Let _d_ be the distance to the goal. Let _a_ be the angle between the robot heading and the goal position, where left is positive. Let _b_ be the angle between the goal direction and the final pose angle, where left is positive. Then the robot linear and angular velocities are calculated like this:
 
     v = Kp * d
     w = Ka*a + Kb*b
 
-See _Autonomous Mobile Robots, Second Edition_ by Siegwart et. al., section 3.6.2.4. Here I have changed the sign of ~b~ (beta) and K~b~ to make the math simpler.
+See _Autonomous Mobile Robots, Second Edition_ by Siegwart et. al., section 3.6.2.4. Here I have changed the sign of _b_ (beta) and _K~b~_ to make the math simpler.
 
-To ensure convergence toward the goal, K~p~, K~a~, and K~b~ must all be positive, and K~a~ must be greater than K~p~. To ensure robust convergence, so that the robot never changes direction, K~a~ - 5/3*K~b~ - 2/pi*K~p~ must be greater than zero.
+To ensure convergence toward the goal, _K~p~_, _K~a~_, and _K~b~_ must all be positive, and _K~a~_
+must be greater than _K~p~_. To ensure robust convergence, so that the robot never changes direction,
+_K~a~_ - 5/3*_K~b~_ - 2/pi*_K~p~_ must be greater than zero.
 
 === 4. sim_robot
 
