@@ -128,11 +128,16 @@ The maximum linear velocity toward the goal (meters/second).
 `~max_angular_velocity` (float, default: 1.5)::
 The maximum angular velocity (radians/second).
 
-`~velocity_linear_ramp_time` (float, default: 0.25)::
-The desired ramp time between zero velocity and max linear velocity (seconds).
-The same ramp time is used for starting and stopping the robot.
+`~max_linear_acceleration` (float, default: 4.0)::
+The maximum linear acceleration (meters/second^2).
 
-`~velocity_angular_ramp_time` (float, default: 0.25)::
-The desired ramp time between zero velocity and max angular velocity (seconds).
-The same ramp time is used for starting and stopping the robot.
+`~Kp` (float, default: 3.0)::
+Linear distance proportionality constant. Higher values make the robot accelerate more quickly toward the goal and decelerate less quickly.
 
+`~Ka` (float: default: 8.0)::
+Proportionality constant for angle to goal position. Higher values make the robot turn more quickly toward the goal.
+
+`~Kb` (float: default: -1.5)::
+Proportionality constant for angle to goal pose direction. Lower values make the robot turn more quickly toward the goal pose direction.
+
+To ensure convergence toward the goal, K~p~ and K~a~ must be positive, K~b~ must be negative, and K~a~ must be greater than K~p~. To ensure robust convergence, so that the robot never changes direction, K~a~ + 5/3*K~b~ - 2/pi*K~p~ must be greater than zero.
