@@ -112,8 +112,8 @@ Desired goal pose.
 
 ==== Parameters
 
-`~rate` (float, default: 0.1)::
-Rate at which to publish desired velocities.
+`~rate` (float, default: 10)::
+Rate at which to publish desired velocities (Hz).
 
 `~goal_linear_tolerance` (float, default: 0.1)::
 The distance from the goal at which the robot is assumed to have accomplished the goal position (meters).
