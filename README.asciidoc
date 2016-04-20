@@ -148,3 +148,39 @@ The control law for determining the linear and angular velocity to move toward t
 See _Autonomous Mobile Robots, Second Edition_ by Siegwart et. al., section 3.6.2.4. Here I have changed the sign of ~b~ (beta) and K~b~ to make the math simpler.
 
 To ensure convergence toward the goal, K~p~, K~a~, and K~b~ must all be positive, and K~a~ must be greater than K~p~. To ensure robust convergence, so that the robot never changes direction, K~a~ - 5/3*K~b~ - 2/pi*K~p~ must be greater than zero.
+
+=== 4. sim_robot
+
+Implements a simulation of perfect differential drive robot hardware. It immediately follows any speed
+commands received with infinite acceleration, and publishes the wheel encoder values and encoder
+rates.
+
+==== Published Topics
+
+`~lwheel_ticks` (std_msgs/Int32)::
+Cumulative encoder ticks of the left wheel.
+
+`~rwheel_ticks` (std_msgs/Int32)::
+Cumulative encoder ticks of the right wheel.
+
+`~lwheel_rate` (std_msgs/Float32)::
+Left wheel rotation rate, in encoder ticks per second.
+
+`~rwheel_rate` (std_msgs/Float32)::
+Right wheel rotation rate, in encoder ticks per second.
+
+==== Subscribed Topics
+
+`~lwheel_desired_rate` (std_msgs/Int32)::
+Desired left wheel rotation rate, in encoder ticks per second.
+
+`~rwheel_desired_rate` (std_msgs/Int32)::
+Desired right wheel rotation rate, in encoder ticks per second.
+
+==== Parameters
+
+`~cmd_timeout` (float, default: 0.2)::
+The amount of time after the last wheel rate message when the robot should stop automatically (seconds).
+
+`~rate` (float, default 10.0)::
+The rate at which the simulated wheel encoder values and rates should be published (Hz).
