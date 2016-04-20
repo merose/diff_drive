@@ -1,2 +1,19 @@
-= diff_drive_controller -- ROS nodes to control and monitor a differential-drive robot
+= diff_drive_controller -- Differential-Driver Controller
 :imagesdir: ./images
+
+This repository implements ROS nodes to control and monitor a differential-drive robot.
+
+== ROS API
+
+=== twist_to_wheels
+
+Listens for desired linear and angular velocity, and publishes corresponding wheel velocities, in encoder ticks per second, required to achieve those velocities.
+
+==== Published Topics
+
+`~lwheel_desired_rate` (std_msgs/Int32)::
+Desired left wheel rotation rate, in encoder ticks per second.
+
+`~rwheel_desired_rate` (std_msgs/Int32)::
+Desired right wheel rotation rate, in encoder ticks per second.
+
