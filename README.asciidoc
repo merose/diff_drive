@@ -5,7 +5,7 @@ This repository implements ROS nodes to control and monitor a differential-drive
 
 == ROS API
 
-=== twist_to_wheels
+=== 1. twist_to_wheels
 
 Listens for desired linear and angular velocity, and publishes corresponding wheel velocities, in encoder ticks per second, required to achieve those velocities.
 
@@ -17,3 +17,74 @@ Desired left wheel rotation rate, in encoder ticks per second.
 `~rwheel_desired_rate` (std_msgs/Int32)::
 Desired right wheel rotation rate, in encoder ticks per second.
 
+==== Subscribed Topics
+
+`~cmd_vel` (geometry_msgs/Twist)::
+Desired linear and angular velocity.
+
+==== Parameters
+
+`~ticks_per_meter` (double)::
+Number of encoder ticks per meter of travel.
+
+`~wheel_separation` (double)::
+Distance between the two wheels (m).
+
+`~rate` (int, default: 50)::
+The rate that the output velocity target messages will be published (Hz).
+
+`~timeout_ticks` (int, default: 2)::
+The number of velocity target messages that will be published after the last twist message is received.
+
+=== 2. wheels_to_odometry
+
+Listens for wheel movement and rates and publishes the transform between the odom frame and the robot frame.
+
+==== Published Topics
+
+`~odom` -- (nav_msgs/Odometry)::
+The robot odometry -- the current robot pose.
+
+`~tf::
+The transform between the odometry frame and the robot frame.
+
+==== Subscribed Topics
+
+`~lwheel_ticks` (std_msgs/Int32)::
+Cumulative encoder ticks of the left wheel.
+
+`~rwheel_ticks` (std_msgs/Int32)::
+Cumulative encoder ticks of the right wheel.
+
+`~lwheel_rate` (std_msgs/Float32)::
+Left wheel rotation rate, in encoder ticks per second.
+
+`~rwheel_rate` (std_msgs/Float32)::
+Right wheel rotation rate, in encoder ticks per second.
+
+==== Parameters
+
+`~ticks_per_meter` (double)::
+Number of encoder ticks per meter of travel.
+
+`~wheel_separation` (double)::
+Distance between the two wheels (m).
+
+`~rate` (double, default 10.0)::
+The rate at which the `tf` and `odom` topics are published (Hz).
+
+`~base_frame_id` (string, default: "base_link")::
+The name of the base frame of the robot. 
+
+`~odom_frame_id` (string, default: "odom")::
+The name of the odometry reference frame. 
+
+`~encoder_min` (int, default: -32768)::
+
+`~encoder_max` (int, default: 32768)::
+The min and max value the encoder should output. Used to calculate odometry when the values wrap around. 
+
+`~wheel_low_wrap` (int, default: 0.3 * (encoder_max - encoder_min + 1) + encoder_min)::
+
+`~wheel_high_wrap` (int, default: 0.7 * (encoder_max - encoder_min + 1) + encoder_min)::
+If a reading is greater than wheel_high_wrap and the next reading is less than wheel_low_wrap, then the reading has wrapped around in the positive direction, and the odometry will be calculated appropriately. The same concept applies for the negative direction.
