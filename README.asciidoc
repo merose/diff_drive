@@ -1,7 +1,17 @@
 = diff_drive -- Differential-Driver Controller
 :imagesdir: ./images
 
-This repository implements ROS nodes to control and monitor a differential-drive robot.
+This package implements ROS nodes to control and monitor a differential-drive robot.
+
+The package
+is intended as a lighter-weight solution than the ROS controller framework, albeit with lower
+performance since it is written in Python. If you need tight, real-time control, you may want
+to look at link:http://wiki.ros.org/ros_controllers[ros_controllers],
+a C++ package which includes a differential-drive controller that is integrated with
+link:http://wiki.ros.org/ros_control[ros_control] and
+link:http://wiki.ros.org/controller_manager[controller_manager]. Those controllers are designed
+to integrate with hardware in the same process, rather than using topics. Instead, this package
+expects to publish the desired motor speeds using standard ROS messages.
 
 == Supplied Nodes
 
