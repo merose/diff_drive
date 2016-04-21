@@ -1,7 +1,21 @@
-= diff_drive_controller -- Differential-Driver Controller
+= diff_drive -- Differential-Driver Controller
 :imagesdir: ./images
 
 This repository implements ROS nodes to control and monitor a differential-drive robot.
+
+== Supplied Nodes
+
+* `diff_drive_controller` -- Converts from twist to wheel velocities for motors.
+* `diff_drive_odometry` -- Publishes odometry from wheel encoder data.
+* `diff_drive_mock_robot` -- Implements a mock differential drive robot, for testing.
+* `diff_drive_drive_to_goal` -- Moves the robot to a goal position.
+
+The nodes in this package are designed with these considerations:
+
+* The node and hardware implementing differential drive should deal only in encoder ticks.
+* Conversions to and from physical coordinates should happen within the nodes in this package.
+* This package should integrate cleanly with the navigation stack, perhaps with remappings.
+* Nodes should use standard topic and parameter names used by the navigation stack, but should allow remapping.
 
 == ROS API
 
