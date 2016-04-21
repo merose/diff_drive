@@ -7,8 +7,8 @@ This repository implements ROS nodes to control and monitor a differential-drive
 
 * `diff_drive_controller` -- Converts from twist to wheel velocities for motors.
 * `diff_drive_odometry` -- Publishes odometry from wheel encoder data.
+* `diff_drive_go_to_goal` -- Moves the robot to a goal position.
 * `diff_drive_mock_robot` -- Implements a mock differential drive robot, for testing.
-* `diff_drive_drive_to_goal` -- Moves the robot to a goal position.
 
 The nodes in this package are designed with these considerations:
 
@@ -19,7 +19,7 @@ The nodes in this package are designed with these considerations:
 
 == ROS API
 
-=== 1. twist_to_wheels
+=== 1. diff_drive_controller
 
 Listens for desired linear and angular velocity, and publishes corresponding wheel velocities, in encoder ticks per second, required to achieve those velocities.
 
@@ -50,7 +50,7 @@ The rate that the output velocity target messages will be published (Hz).
 `~timeout_ticks` (int, default: 2)::
 The number of velocity target messages that will be published after the last twist message is received.
 
-=== 2. wheels_to_odometry
+=== 2. diff_drive_odometry
 
 Listens for wheel movement and rates and publishes the transform between the odom frame and the robot frame.
 
@@ -107,7 +107,7 @@ The min and max value the encoder should output. Used to calculate odometry when
 `~wheel_high_wrap` (int, default: 0.7 * (encoder_max - encoder_min + 1) + encoder_min)::
 If a reading is greater than wheel_high_wrap and the next reading is less than wheel_low_wrap, then the reading has wrapped around in the positive direction, and the odometry will be calculated appropriately. The same concept applies for the negative direction.
 
-=== 3. goal_to_twist
+=== 3. diff_drive_go_to_goal
 
 Listens for new goal poses and computes velocities needed to achieve the goal.
 
@@ -165,7 +165,7 @@ To ensure convergence toward the goal, _K~p~_, _K~a~_, and _K~b~_ must all be po
 must be greater than _K~p~_. To ensure robust convergence, so that the robot never changes direction,
 _K~a~_ - 5/3*_K~b~_ - 2/pi*_K~p~_ must be greater than zero.
 
-=== 4. sim_robot
+=== 4. diff_drive_mock_robot
 
 Implements a simulation of perfect differential drive robot hardware. It immediately follows any speed
 commands received with infinite acceleration, and publishes the wheel encoder values and encoder
