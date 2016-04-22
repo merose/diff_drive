@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<package format="2">
+  <name>diff_drive</name>
+  <version>1.0.0</version>
+  <description>
+    This package implements a control mechanism for a differential drive robot.
+  </description>
+  <author>Mark Rose</author>
+  <maintainer email="markrose@acm.org">Mark Rose</maintainer>
+  <url type="website">https://github.com/merose/diff_drive</url>
+  <url type="repository">https://github.com/merose/diff_drive.git</url>
+  <url type="bugtracker">https://github.com/merose/diff_drive/issues</url>
+  <license>BSD</license>
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <depend>std_msgs</depend>
+  <depend>geometry_msgs</depend>
+  <build_depend>rostest</build_depend>
+  
+</package>

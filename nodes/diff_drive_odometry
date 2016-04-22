@@ -1,0 +1,6 @@
+#! /usr/bin/env python
+
+import diff_drive
+
+if __name__ == '__main__':
+    diff_drive.odometry_main()
