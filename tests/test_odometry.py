@@ -11,7 +11,7 @@ class TestOdometry(unittest.TestCase):
 
     def setUp(self):
         self.wheelSeparation = 0.10
-        self.ticksPerMeter = 1000
+        self.ticksPerMeter = 10000
         self.odom = Odometry()
         self.odom.setWheelSeparation(self.wheelSeparation)
         self.odom.setTicksPerMeter(self.ticksPerMeter)
@@ -26,7 +26,7 @@ class TestOdometry(unittest.TestCase):
         self.assertEquals(pose.thetaVel, 0)
 
     def testTravelForward(self):
-        self.checkUpdate(1000, 1000, 2, {'x': 1, 'xVel': 1/2})
+        self.checkUpdate(10000, 10000, 2, {'x': 1, 'xVel': 1/2})
 
     def testSpinLeft(self):
         angle = (200/self.ticksPerMeter / self.wheelSeparation) % (2*pi)
@@ -40,16 +40,30 @@ class TestOdometry(unittest.TestCase):
                           'thetaVel': -angle/2})
 
     def testCurveLeft(self):
-        distance = (100 + 200)/2 / self.ticksPerMeter
-        angle = 100/self.ticksPerMeter / self.wheelSeparation
-        self.checkUpdate(100, 200, 2,
-                         {'x': distance*cos(angle/2),
-                          'y': distance*sin(angle/2),
+        radius = self.wheelSeparation / 2
+        angle = pi
+        s = angle * self.wheelSeparation
+        ticks = int(s * self.ticksPerMeter)
+        self.checkUpdate(0, ticks, 2,
+                         {'x': 0,
+                          'y': radius,
                           'theta': angle,
-                          'xVel': distance*cos(angle/2)/2,
-                          'yVel': distance*sin(angle/2)/2,
+                          'xVel': 0,
+                          'yVel': radius/2,
                           'thetaVel': angle/2})
                           
+    def testCircleRight(self):
+        vr = 8
+        vl = 9
+        radius = abs(self.wheelSeparation/2 * (vr+vl)/(vr-vl))
+        circumference = 2*pi*radius
+        deltaTravel = (vr+vl)/2 * self.ticksPerMeter;
+        for i in range(int(circumference/deltaTravel)):
+            self.odom.updateLeftWheel(vl)
+            self.odom.updateRightWheel(vr)
+            self.odom.updatePose(i+1)
+        self.checkPose(self.odom.getPose(), {'x': 0, 'y': 0})
+
     def checkUpdate(self, leftTicks, rightTicks, deltaTime, attrs):
         self.odom.updateLeftWheel(leftTicks)
         self.odom.updateRightWheel(rightTicks)
@@ -59,13 +73,19 @@ class TestOdometry(unittest.TestCase):
     def checkPose(self, pose, attrs):
         for key in ['x', 'y', 'theta', 'xVel', 'yVel', 'thetaVel']:
             if key in attrs:
-                self.assertAlmostEqual(
-                    getattr(pose, key), attrs[key], 7,
-                            "{0}: {1}!={2}".format(key,
-                                                   getattr(pose, key),
-                                                   attrs[key]))
+                self.assertClose(
+                    getattr(pose, key), attrs[key],
+                            msg="{0}: {1}!={2}".format(key,
+                                                    getattr(pose, key),
+                                                    attrs[key]))
             else:
                 self.assertEquals(getattr(pose, key), 0, key)
 
+    def assertClose(self, x, y, msg):
+        if y == 0:
+            self.assertLess(abs(x), 0.0001, msg)
+        else:
+            self.assertLess(abs(x-y)/y, 0.001, msg)
+        
 if __name__ == '__main__':
     unittest.main()

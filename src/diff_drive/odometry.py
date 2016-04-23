@@ -34,16 +34,34 @@ class Odometry:
         self.rightEncoder.update(newCount)
 
     def updatePose(self, newTime):
+        """Updates the pose based on the accumulated encoder ticks
+        of the two wheels. See https://chess.eecs.berkeley.edu/eecs149/documentation/differentialDrive.pdf
+        for details.
+        """
         leftTravel = self.leftEncoder.getDelta() / self.ticksPerMeter
         rightTravel = self.rightEncoder.getDelta() / self.ticksPerMeter
         deltaTime = newTime - self.lastTime
 
-        deltaTravel = (leftTravel + rightTravel) / 2
         deltaTheta = (rightTravel - leftTravel) / self.wheelSeparation
-        meanTheta = self.pose.theta + deltaTheta/2
 
-        deltaX = deltaTravel * cos(meanTheta)
-        deltaY = deltaTravel * sin(meanTheta)
+        if rightTravel == leftTravel:
+            deltaX = leftTravel*cos(self.pose.theta)
+            deltaY = leftTravel*sin(self.pose.theta)
+        else:
+            radius = self.wheelSeparation/2 \
+                * (rightTravel + leftTravel) / (rightTravel - leftTravel)
+
+            # Find the instantaneous center of curvature (ICC).
+            iccX = self.pose.x - radius*sin(self.pose.theta)
+            iccY = self.pose.y + radius*cos(self.pose.theta)
+
+            deltaX = cos(deltaTheta)*(self.pose.x - iccX) \
+                - sin(deltaTheta)*(self.pose.y - iccY) \
+                + iccX - self.pose.x
+          
+            deltaY = sin(deltaTheta)*(self.pose.x - iccX) \
+                + cos(deltaTheta)*(self.pose.y - iccX) \
+                + iccY - self.pose.y
 
         self.pose.x += deltaX
         self.pose.y += deltaY
