@@ -1,6 +1,7 @@
 #! /usr/bin/env python
 
-import diff_drive
+from diff_drive import OdometryNode
 
 if __name__ == '__main__':
-    diff_drive.odometry_main()
+    node = OdometryNode
+    node.main()
