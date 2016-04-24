@@ -1,7 +1,7 @@
 #! /usr/bin/env python
+from __future__ import division
 PKG='test_encoder'
 
-from __future__ import division
 import unittest
 from diff_drive.encoder import Encoder
 
