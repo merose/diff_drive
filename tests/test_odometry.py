@@ -48,8 +48,8 @@ class TestOdometry(unittest.TestCase):
                          {'x': 0,
                           'y': radius,
                           'theta': angle,
-                          'xVel': 0,
-                          'yVel': radius/2,
+                          'xVel': s/4,
+                          'yVel': 0,
                           'thetaVel': angle/2})
                           
     def testCircleRight(self):

@@ -1,7 +1,90 @@
 #! /usr/bin/env python
+from __future__ import division
 
-from diff_drive import OdometryNode
+import rospy
+from geometry_msgs.msg import Quaternion
+from geometry_msgs.msg import Twist
+from nav_msgs.msg import Odometry
+from std_msgs.msg import Int32
+from tf.broadcaster import TransformBroadcaster
+
+import from diff_drive import odometry
+
+def OdometryNode:
+
+    def __init__():
+        self.odometry = odometry.Odometry()
+
+    def main(self):
+        self.odomPub = rospy.Publisher('odom', Odometry, queue_size=10)
+        self.tfPub = TransformBroadcaster()
+
+        rospy.init_node('diff_drive_odometry')
+        self.nodeName = rospy.get_name()
+        rospy.loginfo("{0} started".format(self.nodeName))
+
+        rospy.Subscriber("~lwheel_ticks", Int32, self.leftCallback)
+        rospy.Subscriber("~rwheel_ticks", Int32, self.rightCallback)
+
+        self.ticksPerMeter = rospy.get_param('~ticks_per_meter')
+        self.wheelSeparation = rospy.get_param('~wheel_separation')
+        self.rate = rospy.get_param('~rate', 10.0)
+        self.baseFrameID = rospy.get_param('~base_frame_id', 'base_link')
+        self.odomFrameID = rospy.get_param('~odom_frame_id', 'odom')
+        self.encoderMin = rospy.get_param('~encoder_min', -32768)
+        self.encoderMax = rospy.get_param('~encoder_max', 32767)
+
+        self.odometry.setWheelSeparation(self.wheelSeparation)
+        self.odometry.setTicksPerMeter(self.ticksPerMeter)
+        self.odometry.setEncoderRange(self.encoderMin, self.encoderMax)
+        self.odometry.setTime(rospy.get_time())
+
+        rate = rospy.Rate(self.rate)
+        while not rospy.is_shut_down():
+            self.publish()
+            rate.sleep()
+
+    def publish(self):
+        self.odometry.updatePose(rospy.get_time())
+        now = rospy.get_ros_time()
+        pose = self.odometry.getPose()
+
+        q = Quaternion()
+        q.x = 0
+        q.y = 0
+        q.z = sin(pose.theta / 2)
+        q.w = cos(pose.theta / 2)
+        self.tfPub.sendTransform(
+            (pose.x, pose.y, 0),
+            (q.x, q.y, q.z, q.w),
+            now,
+            self.baseFrameID,
+            self.odomFrameID
+        )
+
+        odom = Odometry()
+        odom.header.stamp = now
+        odom.header.frame_id = self.odomFrameID
+        odom.child_frame_id = self.baseFrameID
+        odom.pose.pose.position.x = pose.x
+        odom.pose.pose.position.y = pose.y
+        odom.pose.pose.position.z = 0
+        odom.pose.pose.orientation = q
+        odom.twist.twist.linear.x = pose.xVel
+        odom.twist.twist.linear.y = 0
+        odom.twist.twist.angular.z = pose.thetaVel
+        self.odomPub.publish(odom)
+
+    def leftCallback(self, data):
+        self.odometry.updateLeftWheel(data)
+
+    def rightCallback(self, data):
+        self.odometry.updateRightWheel(data)
+
 
 if __name__ == '__main__':
-    node = OdometryNode
-    node.main()
+    try:
+        node = OdometryNode()
+        node.main()
+    except rospy.ROSInterruptException:
+        pass

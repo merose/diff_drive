@@ -42,6 +42,7 @@ class Odometry:
         rightTravel = self.rightEncoder.getDelta() / self.ticksPerMeter
         deltaTime = newTime - self.lastTime
 
+        deltaTravel = (rightTravel + leftTravel) / 2
         deltaTheta = (rightTravel - leftTravel) / self.wheelSeparation
 
         if rightTravel == leftTravel:
@@ -66,8 +67,8 @@ class Odometry:
         self.pose.x += deltaX
         self.pose.y += deltaY
         self.pose.theta = (self.pose.theta + deltaTheta) % (2*pi)
-        self.pose.xVel = deltaX / deltaTime
-        self.pose.yVel = deltaY / deltaTime
+        self.pose.xVel = deltaTravel / deltaTime
+        self.pose.yVel = 0
         self.pose.thetaVel = deltaTheta / deltaTime
 
         self.lastTime = newTime

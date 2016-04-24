@@ -1,0 +1,86 @@
+#! /usr/bin/env python
+from __future__ import division
+
+import rospy
+from math import pi, asin
+from geometry_msgs.msg import Twist, Pose
+from nav_msgs.msg import Odometry
+from std_msgs.msg import Float32
+
+from diff_drive import goal_controller
+from diff_drive import pose
+
+def GoToGoalNode:
+
+    def __init__():
+        self.controller = controller.GoalController()
+
+    def main(self):
+        self.distPub = rospy.Publisher('~distance_to_goal',
+                                       Float32, queue_size=10)
+        self.twistPub = rospy.Publisher('cmd_vel',
+                                        Twist, queue_size=10)
+
+        rospy.init_node('diff_drive_go_to_goal')
+        self.nodeName = rospy.get_name()
+        rospy.loginfo("{0} started".format(self.nodeName))
+
+        rospy.Subscriber('odom', Odometry, self.odomCallback)
+        rospy.Subscriber('move_base_simple/goal', Pose, self.goalCallback)
+
+        self.rate = rospy.get_param('~rate', 10.0)
+        self.dT = 1 / self.rate
+        self.kP = rospy.get_param('~kP')
+        self.kA = rospy.get_param('~kA')
+        self.kB = rospy.get_param('~kB')
+        self.linearTolerance = rospy.get_param('~linear_tolerance', 0.05)
+        self.angularTolerance = rospy.get_param('~angular_tolerance',
+                                                3/180*pi)
+
+        self.controller.setConstants(self.kP, self.kA, self.kB)
+        self.controller.setLinearTolerance(self.linearTolerance)
+        self.controller.setAngularTolerance(self.angularTolerance)
+
+        rate = rospy.Rate(self.rate)
+        self.lastTwistTime = rospy.get_time()
+        while not rospy.is_shut_down():
+            self.publish()
+            rate.sleep()
+
+    def publish(self):
+        if self.controller.atGoal(self.pose, self.goal):
+            desired = pose.Pose()
+        else:
+            desired = self.controller.getVelocity(self.pose, self.goal,
+                                                  self.dT)
+
+        d = self.controller.getGoalDistance(self.pose, self.goal)
+        self.distPub.publish(d)
+
+        twist = Twist()
+        twist.linear.x = desired.xVel
+        twist.angular.z = desired.thetaVel
+        self.twistPub.publish(twist)
+
+    def odomCallback(self, pose):
+        self.pose = pose.Pose()
+        pos = pose.pose.position
+        orientation = pose.pose.orientation
+        self.pose.x = pos.x
+        self.pose.y = pos.y
+        self.pose.theta = 2 * asin(orientation.z)
+
+    def goalCallback(self, goal):
+        self.goal = pose.Pose()
+        pos = goal.position
+        orientation = goal.orientation
+        self.goal.x = pos.x
+        self.goal.y = pos.y
+        self.goal.theta = 2 * asin(orientation.z)
+
+if __name__ == '__main__':
+    try:
+        node = GoToGoalNode()
+        node.main()
+    except rospy.ROSInterruptException:
+        pass
