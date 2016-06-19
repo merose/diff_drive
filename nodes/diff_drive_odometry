@@ -5,14 +5,15 @@ import rospy
 from geometry_msgs.msg import Quaternion
 from geometry_msgs.msg import Twist
 from nav_msgs.msg import Odometry
-from std_msgs.msg import Int32
+from std_msgs.msg import Int16
 from tf.broadcaster import TransformBroadcaster
+from math import sin, cos
 
 from diff_drive import odometry
 
 class OdometryNode:
 
-    def __init__():
+    def __init__(self):
         self.odometry = odometry.Odometry()
 
     def main(self):
@@ -23,16 +24,16 @@ class OdometryNode:
         self.nodeName = rospy.get_name()
         rospy.loginfo("{0} started".format(self.nodeName))
 
-        rospy.Subscriber("lwheel_ticks", Int32, self.leftCallback)
-        rospy.Subscriber("rwheel_ticks", Int32, self.rightCallback)
+        rospy.Subscriber("lwheel_ticks", Int16, self.leftCallback)
+        rospy.Subscriber("rwheel_ticks", Int16, self.rightCallback)
 
-        self.ticksPerMeter = rospy.get_param('~ticks_per_meter')
-        self.wheelSeparation = rospy.get_param('~wheel_separation')
-        self.rate = rospy.get_param('~rate', 10.0)
+        self.ticksPerMeter = int(rospy.get_param('~ticks_per_meter'))
+        self.wheelSeparation = float(rospy.get_param('~wheel_separation'))
+        self.rate = float(rospy.get_param('~rate', 10.0))
         self.baseFrameID = rospy.get_param('~base_frame_id', 'base_link')
         self.odomFrameID = rospy.get_param('~odom_frame_id', 'odom')
-        self.encoderMin = rospy.get_param('~encoder_min', -32768)
-        self.encoderMax = rospy.get_param('~encoder_max', 32767)
+        self.encoderMin = int(rospy.get_param('~encoder_min', -32768))
+        self.encoderMax = int(rospy.get_param('~encoder_max', 32767))
 
         self.odometry.setWheelSeparation(self.wheelSeparation)
         self.odometry.setTicksPerMeter(self.ticksPerMeter)
@@ -40,13 +41,13 @@ class OdometryNode:
         self.odometry.setTime(rospy.get_time())
 
         rate = rospy.Rate(self.rate)
-        while not rospy.is_shut_down():
+        while not rospy.is_shutdown():
             self.publish()
             rate.sleep()
 
     def publish(self):
         self.odometry.updatePose(rospy.get_time())
-        now = rospy.get_ros_time()
+        now = rospy.get_rostime()
         pose = self.odometry.getPose()
 
         q = Quaternion()
@@ -75,11 +76,11 @@ class OdometryNode:
         odom.twist.twist.angular.z = pose.thetaVel
         self.odomPub.publish(odom)
 
-    def leftCallback(self, data):
-        self.odometry.updateLeftWheel(data)
+    def leftCallback(self, msg):
+        self.odometry.updateLeftWheel(msg.data)
 
-    def rightCallback(self, data):
-        self.odometry.updateRightWheel(data)
+    def rightCallback(self, msg):
+        self.odometry.updateRightWheel(msg.data)
 
 
 if __name__ == '__main__':

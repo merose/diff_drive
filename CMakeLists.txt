@@ -9,8 +9,8 @@ endif()
 
 if (CATKIN_ENABLE_TESTING)
   find_package(rostest REQUIRED)
-  add_rostest(tests/your_first_rostest.test)
-  add_rostest(tests/your_second_rostest.test)
+#  add_rostest(tests/your_first_rostest.test)
+#  add_rostest(tests/your_second_rostest.test)
 endif()
 
 catkin_package()
@@ -21,4 +21,6 @@ catkin_install_python(
         nodes/diff_drive_controller
         nodes/diff_drive_go_to_goal
 	nodes/diff_drive_mock_robot
-    DESTINATION ${CATKIN_PACKoAGE_BIN_DESTINATION})
+    DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
+
+catkin_python_setup()
