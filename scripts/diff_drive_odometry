@@ -8,9 +8,9 @@ from nav_msgs.msg import Odometry
 from std_msgs.msg import Int32
 from tf.broadcaster import TransformBroadcaster
 
-import from diff_drive import odometry
+from diff_drive import odometry
 
-def OdometryNode:
+class OdometryNode:
 
     def __init__():
         self.odometry = odometry.Odometry()
@@ -23,8 +23,8 @@ def OdometryNode:
         self.nodeName = rospy.get_name()
         rospy.loginfo("{0} started".format(self.nodeName))
 
-        rospy.Subscriber("~lwheel_ticks", Int32, self.leftCallback)
-        rospy.Subscriber("~rwheel_ticks", Int32, self.rightCallback)
+        rospy.Subscriber("lwheel_ticks", Int32, self.leftCallback)
+        rospy.Subscriber("rwheel_ticks", Int32, self.rightCallback)
 
         self.ticksPerMeter = rospy.get_param('~ticks_per_meter')
         self.wheelSeparation = rospy.get_param('~wheel_separation')

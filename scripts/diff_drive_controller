@@ -5,17 +5,17 @@ import rospy
 from geometry_msgs.msg import Twist
 from std_msgs.msg import Int32
 
-import from diff_drive import controller
+from diff_drive import controller
 
-def ControllerNode:
+class ControllerNode:
 
     def __init__():
         self.controller = controller.Controller()
 
     def main(self):
-        self.leftPub = rospy.Publisher('~lwheel_desired_rate',
+        self.leftPub = rospy.Publisher('lwheel_desired_rate',
                                        Int32, queue_size=10)
-        self.rightPub = rospy.Publisher('~rwheel_desired_rate',
+        self.rightPub = rospy.Publisher('rwheel_desired_rate',
                                         Int32, queue_size=10)
 
         rospy.init_node('diff_drive_controller')
