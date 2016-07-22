@@ -10,18 +10,18 @@ from std_msgs.msg import Float32
 from diff_drive import goal_controller
 from diff_drive import pose
 
-def GoToGoalNode:
+class GoToGoalNode:
 
-    def __init__():
-        self.controller = controller.GoalController()
+    def __init__(self):
+        self.controller = goal_controller.GoalController()
 
     def main(self):
+        rospy.init_node('diff_drive_go_to_goal')
         self.distPub = rospy.Publisher('~distance_to_goal',
                                        Float32, queue_size=10)
         self.twistPub = rospy.Publisher('cmd_vel',
                                         Twist, queue_size=10)
 
-        rospy.init_node('diff_drive_go_to_goal')
         self.nodeName = rospy.get_name()
         rospy.loginfo("{0} started".format(self.nodeName))
 
@@ -30,9 +30,9 @@ def GoToGoalNode:
 
         self.rate = rospy.get_param('~rate', 10.0)
         self.dT = 1 / self.rate
-        self.kP = rospy.get_param('~kP')
-        self.kA = rospy.get_param('~kA')
-        self.kB = rospy.get_param('~kB')
+        self.kP = rospy.get_param('~kP', 3.0)
+        self.kA = rospy.get_param('~kA', 8.0)
+        self.kB = rospy.get_param('~kB', 1.5)
         self.linearTolerance = rospy.get_param('~linear_tolerance', 0.05)
         self.angularTolerance = rospy.get_param('~angular_tolerance',
                                                 3/180*pi)
@@ -41,11 +41,20 @@ def GoToGoalNode:
         self.controller.setLinearTolerance(self.linearTolerance)
         self.controller.setAngularTolerance(self.angularTolerance)
 
+        self.initPose()
+        self.goal = None
+        
         rate = rospy.Rate(self.rate)
         self.lastTwistTime = rospy.get_time()
-        while not rospy.is_shut_down():
+        while not rospy.is_shutdown():
             self.publish()
             rate.sleep()
+
+    def initPose(self):
+        self.pose = pose.Pose()
+        self.pose.x = 0
+        self.pose.y = 0
+        self.pose.theta = 0
 
     def publish(self):
         if self.controller.atGoal(self.pose, self.goal):
@@ -62,10 +71,10 @@ def GoToGoalNode:
         twist.angular.z = desired.thetaVel
         self.twistPub.publish(twist)
 
-    def odomCallback(self, pose):
+    def odomCallback(self, newPose):
         self.pose = pose.Pose()
-        pos = pose.pose.position
-        orientation = pose.pose.orientation
+        pos = newPose.pose.pose.position
+        orientation = newPose.pose.pose.orientation
         self.pose.x = pos.x
         self.pose.y = pos.y
         self.pose.theta = 2 * asin(orientation.z)

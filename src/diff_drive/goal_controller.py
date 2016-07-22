@@ -38,11 +38,15 @@ class GoalController:
         self.angularTolerance = tolerance
 
     def getGoalDistance(self, cur, goal):
+        if goal is None:
+            return 0
         diffX = cur.x - goal.x
         diffY = cur.y - goal.y
         return sqrt(diffX*diffX + diffY*diffY)
 
     def atGoal(self, cur, goal):
+        if goal is None:
+            return True
         d = self.getGoalDistance(cur, goal)
         dTh = abs(cur.theta - goal.theta)
         return d < self.linearTolerance and dTh < self.angularTolerance
