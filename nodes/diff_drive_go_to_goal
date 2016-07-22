@@ -2,7 +2,7 @@
 from __future__ import division
 
 import rospy
-from math import pi, asin
+from math import pi, asin, acos
 from geometry_msgs.msg import Twist, Pose
 from nav_msgs.msg import Odometry
 from std_msgs.msg import Float32
@@ -77,7 +77,7 @@ class GoToGoalNode:
         orientation = newPose.pose.pose.orientation
         self.pose.x = pos.x
         self.pose.y = pos.y
-        self.pose.theta = 2 * asin(orientation.z)
+        self.pose.theta = 2 * acos(orientation.w)
 
     def goalCallback(self, goal):
         self.goal = pose.Pose()
