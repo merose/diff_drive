@@ -61,7 +61,7 @@ class Odometry:
                 + iccX - self.pose.x
           
             deltaY = sin(deltaTheta)*(self.pose.x - iccX) \
-                + cos(deltaTheta)*(self.pose.y - iccX) \
+                + cos(deltaTheta)*(self.pose.y - iccY) \
                 + iccY - self.pose.y
 
         self.pose.x += deltaX
