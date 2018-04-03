@@ -41,6 +41,13 @@ class GoToGoalNode:
         self.controller.setLinearTolerance(self.linearTolerance)
         self.controller.setAngularTolerance(self.angularTolerance)
 
+        # Set whether to allow movement backward. Backward movement is
+        # safe if the robot can avoid obstacles while traveling in
+        # reverse. We default to forward movement only since many
+        # sensors are front-facing.
+        self.controller.setForwardMovementOnly(
+            rospy.get_param('~forwardMovementOnly', true))
+
         self.initPose()
         self.goal = None
         

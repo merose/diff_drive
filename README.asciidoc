@@ -155,6 +155,11 @@ The maximum angular velocity (radians/second).
 `~max_linear_acceleration` (float, default: 4.0)::
 The maximum linear acceleration (meters/second^2).
 
+`~forwardMovementOnly` (boolean, default: true)::
+If true, only forward movement is allowed to achieve the goal position.
+If false, the robot will move backward to the goal if that is the most
+direct path.
+
 `~Kp` (float, default: 3.0)::
 Linear distance proportionality constant. Higher values make the robot accelerate more quickly toward the goal and decelerate less quickly.
 
