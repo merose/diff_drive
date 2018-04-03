@@ -46,11 +46,24 @@ class TestOdometry(unittest.TestCase):
         ticks = int(s * self.ticksPerMeter)
         self.checkUpdate(0, ticks, 2,
                          {'x': 0,
-                          'y': radius,
+                          'y': 2*radius,
                           'theta': angle,
                           'xVel': s/4,
                           'yVel': 0,
                           'thetaVel': angle/2})
+                          
+    def testCurveRight(self):
+        radius = self.wheelSeparation / 2
+        angle = pi
+        s = angle * self.wheelSeparation
+        ticks = int(s * self.ticksPerMeter)
+        self.checkUpdate(ticks, 0, 2,
+                         {'x': 0,
+                          'y': -2*radius,
+                          'theta': -angle,
+                          'xVel': s/4,
+                          'yVel': 0,
+                          'thetaVel': -angle/2})
                           
     def testCircleRight(self):
         vr = 8
