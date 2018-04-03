@@ -49,20 +49,16 @@ class Odometry:
             deltaX = leftTravel*cos(self.pose.theta)
             deltaY = leftTravel*sin(self.pose.theta)
         else:
-            radius = self.wheelSeparation/2 \
-                * (rightTravel + leftTravel) / (rightTravel - leftTravel)
+            radius = deltaTravel / deltaTheta
 
-            # Find the instantaneous center of curvature (ICC).
-            iccX = self.pose.x - radius*sin(self.pose.theta)
-            iccY = self.pose.y + radius*cos(self.pose.theta)
+            # Find the instantaneous center of curvature (ICC) offset.
+            iccDx = radius*sin(self.pose.theta)
+            iccDy = -radius*cos(self.pose.theta)
 
-            deltaX = cos(deltaTheta)*(self.pose.x - iccX) \
-                - sin(deltaTheta)*(self.pose.y - iccY) \
-                + iccX - self.pose.x
-          
-            deltaY = sin(deltaTheta)*(self.pose.x - iccX) \
-                + cos(deltaTheta)*(self.pose.y - iccY) \
-                + iccY - self.pose.y
+            deltaX = cos(deltaTheta)*iccDx + sin(deltaTheta)*iccDy \
+                - iccDx
+            deltaY = sin(deltaTheta)*iccDx + cos(deltaTheta)*iccDy \
+                - iccDy
 
         self.pose.x += deltaX
         self.pose.y += deltaY
