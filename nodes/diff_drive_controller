@@ -16,9 +16,9 @@ class ControllerNode:
 
     def main(self):
         self.leftPub = rospy.Publisher('lwheel_desired_rate',
-                                       Int32, queue_size=10)
+                                       Int32, queue_size=1)
         self.rightPub = rospy.Publisher('rwheel_desired_rate',
-                                        Int32, queue_size=10)
+                                        Int32, queue_size=1)
 
         rospy.init_node('diff_drive_controller')
         self.nodeName = rospy.get_name()

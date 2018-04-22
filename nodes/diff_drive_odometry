@@ -66,10 +66,11 @@ class OdometryNode:
         odom.child_frame_id = self.baseFrameID
         odom.pose.pose.position.x = pose.x
         odom.pose.pose.position.y = pose.y
-        odom.pose.pose.position.z = 0
-        odom.pose.pose.orientation = q
+        odom.pose.pose.orientation.x = q[0]
+        odom.pose.pose.orientation.y = q[1]
+        odom.pose.pose.orientation.z = q[2]
+        odom.pose.pose.orientation.w = q[3]
         odom.twist.twist.linear.x = pose.xVel
-        odom.twist.twist.linear.y = 0
         odom.twist.twist.angular.z = pose.thetaVel
         self.odomPub.publish(odom)
 
