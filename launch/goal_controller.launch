@@ -1,0 +1,64 @@
+<launch>
+
+  <arg name="ticks_per_meter" value="10000" />
+  <arg name="wheel_separation" value="0.2" />
+
+  <arg name="urdf_file" default="$(find diff_drive)/urdf/diff_drive_description.xacro" />
+  <param name="robot_description" command="$(find xacro)/xacro --inorder $(arg urdf_file)" />
+
+  <!-- Publish the robot state -->
+  <node name="robot_state_publisher" pkg="robot_state_publisher"
+        type="robot_state_publisher">
+    <param name="publish_frequency" value="10.0"/>
+  </node>
+
+  <!-- Provide simulated control of the robot joint angles -->
+  <node name="joint_state_publisher" pkg="joint_state_publisher"
+        type="joint_state_publisher">
+    <param name="use_gui" value="False" />
+    <param name="rate" value="10.0"/>
+  </node>
+
+  <node name="controller" pkg="diff_drive" type="diff_drive_controller"
+        output="screen">
+    <rosparam subst_value="true">
+      ticks_per_meter: $(arg ticks_per_meter)
+      wheel_separation: $(arg wheel_separation)
+      max_motor_speed: 3000
+      timeout: 1.0
+    </rosparam>
+    <remap from="cmd_vel" to="/robot/cmd_vel" />
+  </node>
+  
+  <node name="odom_publisher" pkg="diff_drive" type="diff_drive_odometry"
+        output="screen">
+    <rosparam subst_value="true">
+      ticks_per_meter: $(arg ticks_per_meter)
+      wheel_separation: $(arg wheel_separation)
+    </rosparam>
+  </node>
+
+  <node name="robot" pkg="diff_drive" type="diff_drive_mock_robot"
+        output="screen">
+    <remap from="~lwheel_desired_rate" to="lwheel_desired_rate" />
+    <remap from="~rwheel_desired_rate" to="rwheel_desired_rate" />
+    <remap from="~lwheel_ticks" to="lwheel_ticks" />
+    <remap from="~rwheel_ticks" to="rwheel_ticks" />
+  </node>
+
+  <node name="diff_drive_go_to_goal" pkg="diff_drive"
+        type="diff_drive_go_to_goal" output="screen">
+    <param name="~kP" value="1.5" />
+    <param name="~kA" value="3.0" />
+    <param name="~kB" value="-0.5" />
+    <param name="~max_linear_speed" value="0.2" />
+    <param name="~max_angular_speed" value="0.7" />
+    <param name="~linear_tolerance" value="0.01" />
+    <param name="~angular_tolerance" value="0.04" />
+    <remap from="cmd_vel" to="/robot/cmd_vel" />
+  </node>
+
+  <node name="rviz" pkg="rviz" type="rviz"
+        args="-d $(find diff_drive)/config/view.rviz" />
+
+</launch>

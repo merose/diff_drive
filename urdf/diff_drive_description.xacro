@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<robot name="mock_robot" xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <!-- The robot link description -->
+  <link name="base_link" />
+
+</robot>

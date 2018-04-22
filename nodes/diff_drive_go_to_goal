@@ -3,6 +3,7 @@ from __future__ import division
 
 import rospy
 from math import pi, asin, acos
+from tf.transformations import euler_from_quaternion
 from geometry_msgs.msg import Twist, PoseStamped
 from nav_msgs.msg import Odometry
 from std_msgs.msg import Float32
@@ -74,6 +75,14 @@ class GoToGoalNode:
             desired = self.controller.getVelocity(self.pose, self.goal,
                                                   self.dT)
 
+        # if self.goal is not None \
+        #    and (desired.xVel!=0.0 or desired.thetaVel!=0.0):
+        #     rospy.loginfo(
+        #         'current=(%f,%f,%f) goal=(%f,%f,%f)  xVel=%f thetaVel=%f',
+        #         self.pose.x, self.pose.y, self.pose.theta,
+        #         self.goal.x, self.goal.y, self.goal.theta,
+        #         desired.xVel, desired.thetaVel)
+
         d = self.controller.getGoalDistance(self.pose, self.goal)
         self.distPub.publish(d)
 
@@ -93,10 +102,17 @@ class GoToGoalNode:
     def goalCallback(self, goal):
         self.goal = pose.Pose()
         pos = goal.pose.position
-        orientation = goal.pose.orientation
+        q = [goal.pose.orientation.x,
+             goal.pose.orientation.y,
+             goal.pose.orientation.z,
+             goal.pose.orientation.w]
+        roll, pitch, yaw = euler_from_quaternion(q)
         self.goal.x = pos.x
         self.goal.y = pos.y
-        self.goal.theta = 2 * asin(orientation.z)
+        self.goal.theta = yaw
+
+        rospy.loginfo('Goal: (%f,%f,%f)', self.goal.x, self.goal.y,
+                      self.goal.theta)
 
 if __name__ == '__main__':
     try:

@@ -63,7 +63,7 @@ class GoalController:
         # In Automomous Mobile Robots, they assume theta_G=0. So for
         # the error in heading, we have to adjust theta based on the
         # (possibly non-zero) goal theta.
-        theta = cur.theta - goal.theta
+        theta = self.normalizePi(cur.theta - goal.theta)
         b = -theta - a
 
         d = self.getGoalDistance(cur, goal)
@@ -85,14 +85,20 @@ class GoalController:
             desired.xVel = self.kP * d * direction
             desired.thetaVel = self.kA*a + self.kB*b
 
-        #print('current x:', cur.x, 'y:', cur.y, 'theta:', cur.theta,
-        #    '  goal x:', goal.x, 'y:', goal.y, 'theta:', goal.theta)
-        #print('  theta:', theta, 'a:', a, 'b:', b,
-        #    'v:', desired.xVel, 'w:', desired.thetaVel)
-        #print(str(cur.x) + ',' + str(cur.y) + ',' + str(cur.theta))
+        # Adjust velocities if X velocity is too high.
+        if abs(desired.xVel) > self.maxLinearSpeed:
+            ratio = self.maxLinearSpeed / abs(desired.xVel)
+            desired.xVel *= ratio
+            desired.thetaVel *= ratio
 
-        # TBD: Adjust velocities if linear or angular rates
-        # or acceleration too high.
+        # Adjust velocities if turning velocity too high.
+        if abs(desired.thetaVel) > self.maxAngularSpeed:
+            ratio = self.maxAngularSpeed / abs(desired.thetaVel)
+            desired.xVel *= ratio
+            desired.thetaVel *= ratio
+
+        # TBD: Adjust velocities if linear or angular acceleration
+        # too high.
 
         return desired
 
