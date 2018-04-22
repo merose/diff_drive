@@ -32,21 +32,25 @@ class GoToGoalNode:
         self.dT = 1 / self.rate
         self.kP = rospy.get_param('~kP', 3.0)
         self.kA = rospy.get_param('~kA', 8.0)
-        self.kB = rospy.get_param('~kB', 1.5)
+        self.kB = rospy.get_param('~kB', -1.5)
         self.linearTolerance = rospy.get_param('~linear_tolerance', 0.05)
         self.angularTolerance = rospy.get_param('~angular_tolerance',
                                                 3/180*pi)
+        self.maxLinearSpeed = rospy.get_param('~max_linear_speed', 0.1)
+        self.maxAngularSpeed = rospy.get_param('~max_angular_speed', 0.3)
 
         self.controller.setConstants(self.kP, self.kA, self.kB)
         self.controller.setLinearTolerance(self.linearTolerance)
         self.controller.setAngularTolerance(self.angularTolerance)
+        self.controller.setMaxLinearSpeed(self.maxLinearSpeed)
+        self.controller.setMaxAngularSpeed(self.maxAngularSpeed)
 
         # Set whether to allow movement backward. Backward movement is
         # safe if the robot can avoid obstacles while traveling in
         # reverse. We default to forward movement only since many
         # sensors are front-facing.
         self.controller.setForwardMovementOnly(
-            rospy.get_param('~forwardMovementOnly', true))
+            rospy.get_param('~forwardMovementOnly', True))
 
         self.initPose()
         self.goal = None

@@ -3,7 +3,7 @@ from __future__ import division
 
 import rospy
 from geometry_msgs.msg import Twist
-from std_msgs.msg import Int16
+from std_msgs.msg import Int32
 
 from diff_drive import controller
 
@@ -16,9 +16,9 @@ class ControllerNode:
 
     def main(self):
         self.leftPub = rospy.Publisher('lwheel_desired_rate',
-                                       Int16, queue_size=10)
+                                       Int32, queue_size=10)
         self.rightPub = rospy.Publisher('rwheel_desired_rate',
-                                        Int16, queue_size=10)
+                                        Int32, queue_size=10)
 
         rospy.init_node('diff_drive_controller')
         self.nodeName = rospy.get_name()

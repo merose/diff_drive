@@ -5,8 +5,9 @@ import rospy
 from geometry_msgs.msg import Quaternion
 from geometry_msgs.msg import Twist
 from nav_msgs.msg import Odometry
-from std_msgs.msg import Int16
+from std_msgs.msg import Int32
 from tf.broadcaster import TransformBroadcaster
+from tf.transformations import quaternion_from_euler
 from math import sin, cos
 
 from diff_drive import odometry
@@ -24,8 +25,8 @@ class OdometryNode:
         self.nodeName = rospy.get_name()
         rospy.loginfo("{0} started".format(self.nodeName))
 
-        rospy.Subscriber("lwheel_ticks", Int16, self.leftCallback)
-        rospy.Subscriber("rwheel_ticks", Int16, self.rightCallback)
+        rospy.Subscriber("lwheel_ticks", Int32, self.leftCallback)
+        rospy.Subscriber("rwheel_ticks", Int32, self.rightCallback)
 
         self.ticksPerMeter = int(rospy.get_param('~ticks_per_meter'))
         self.wheelSeparation = float(rospy.get_param('~wheel_separation'))
@@ -50,14 +51,10 @@ class OdometryNode:
         now = rospy.get_rostime()
         pose = self.odometry.getPose()
 
-        q = Quaternion()
-        q.x = 0
-        q.y = 0
-        q.z = sin(pose.theta / 2)
-        q.w = cos(pose.theta / 2)
+        q = quaternion_from_euler(0, 0, pose.theta)
         self.tfPub.sendTransform(
             (pose.x, pose.y, 0),
-            (q.x, q.y, q.z, q.w),
+            (q[0], q[1], q[2], q[3]),
             now,
             self.baseFrameID,
             self.odomFrameID

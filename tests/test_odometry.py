@@ -65,9 +65,12 @@ class TestOdometry(unittest.TestCase):
                           'yVel': 0,
                           'thetaVel': -angle/2})
                           
-    def testCircleRight(self):
-        vr = 8
-        vl = 9
+    def testCircle(self):
+        self.checkCircleRight(8, 9)
+        self.checkCircleRight(0, 100)
+        self.checkCircleRight(100, 0)
+
+    def checkCircle(self, vr, vl):
         radius = abs(self.wheelSeparation/2 * (vr+vl)/(vr-vl))
         circumference = 2*pi*radius
         deltaTravel = (vr+vl)/2 * self.ticksPerMeter;
