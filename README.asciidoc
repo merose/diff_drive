@@ -166,8 +166,8 @@ Linear distance proportionality constant. Higher values make the robot accelerat
 `~Ka` (float: default: 8.0)::
 Proportionality constant for angle to goal position. Higher values make the robot turn more quickly toward the goal.
 
-`~Kb` (float: default: 1.5)::
-Proportionality constant for angle to goal pose direction. Higher values make the robot turn more quickly toward the goal pose direction.
+`~Kb` (float: default: -1.5)::
+Proportionality constant for angle to goal pose direction. Higher values make the robot turn more quickly toward the goal pose direction. This value should be negative, per _Autonomous Mobile Robots_.
 
 The control law for determining the linear and angular velocity to move toward the goal works as follows. Let _d_ be the distance to the goal. Let _a_ be the angle between the robot heading and the goal position, where left is positive. Let _b_ be the angle between the goal direction and the final pose angle, where left is positive. Then the robot linear and angular velocities are calculated like this:
 
