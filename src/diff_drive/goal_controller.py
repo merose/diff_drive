@@ -52,7 +52,7 @@ class GoalController:
         if goal is None:
             return True
         d = self.getGoalDistance(cur, goal)
-        dTh = abs(cur.theta - goal.theta)
+        dTh = abs(self.normalizePi(cur.theta - goal.theta))
         return d < self.linearTolerance and dTh < self.angularTolerance
 
     def getVelocity(self, cur, goal, dT):

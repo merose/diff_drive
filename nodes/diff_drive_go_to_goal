@@ -59,7 +59,8 @@ class GoToGoalNode:
         rate = rospy.Rate(self.rate)
         self.lastTwistTime = rospy.get_time()
         while not rospy.is_shutdown():
-            self.publish()
+            if self.goal is not None:
+                self.publish()
             rate.sleep()
 
     def initPose(self):
@@ -90,6 +91,11 @@ class GoToGoalNode:
         twist.linear.x = desired.xVel
         twist.angular.z = desired.thetaVel
         self.twistPub.publish(twist)
+
+        # Forget the goal if achieved.
+        if self.controller.atGoal(self.pose, self.goal):
+            rospy.loginfo('Goal achieved')
+            self.goal = None
 
     def odomCallback(self, newPose):
         self.pose = pose.Pose()
