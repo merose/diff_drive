@@ -1,4 +1,4 @@
-= diff_drive -- Differential-Driver Controller
+= diff_drive -- Differential-Drive Controller
 :imagesdir: ./images
 
 This package implements ROS nodes to control and monitor a differential-drive robot.
