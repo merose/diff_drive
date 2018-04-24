@@ -49,12 +49,13 @@
   <node name="diff_drive_go_to_goal" pkg="diff_drive"
         type="diff_drive_go_to_goal" output="screen">
     <param name="~kP" value="1.5" />
-    <param name="~kA" value="3.0" />
-    <param name="~kB" value="-0.5" />
+    <param name="~kA" value="2.4" />
+    <param name="~kB" value="-0.4" />
     <param name="~max_linear_speed" value="0.2" />
     <param name="~max_angular_speed" value="0.7" />
     <param name="~linear_tolerance" value="0.01" />
     <param name="~angular_tolerance" value="0.04" />
+    <param name="~forwardMovementOnly" value="false" />
     <remap from="cmd_vel" to="/robot/cmd_vel" />
   </node>
 

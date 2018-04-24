@@ -1,6 +1,7 @@
 from __future__ import division, print_function
 from math import pi, sqrt, sin, cos, atan2
 from diff_drive.pose import Pose
+#import rospy
 
 class GoalController:
     """Finds linear and angular velocities necessary to drive toward
@@ -58,7 +59,8 @@ class GoalController:
     def getVelocity(self, cur, goal, dT):
         desired = Pose()
 
-        a = -cur.theta + atan2(goal.y - cur.y, goal.x - cur.x)
+        goal_heading = atan2(goal.y - cur.y, goal.x - cur.x)
+        a = -cur.theta + goal_heading
 
         # In Automomous Mobile Robots, they assume theta_G=0. So for
         # the error in heading, we have to adjust theta based on the
@@ -66,17 +68,20 @@ class GoalController:
         theta = self.normalizePi(cur.theta - goal.theta)
         b = -theta - a
 
+        # rospy.loginfo('cur=%f goal=%f a=%f b=%f', cur.theta, goal_heading,
+        #               a, b)
+
         d = self.getGoalDistance(cur, goal)
         if self.forwardMovementOnly:
             direction = 1
             a = self.normalizePi(a)
             b = self.normalizePi(b)
-            #if abs(a) > pi/2:
-            #    b = 0
         else:
             direction = self.sign(cos(a))
             a = self.normalizeHalfPi(a)
             b = self.normalizeHalfPi(b)
+
+        # rospy.loginfo('After normalization, a=%f b=%f', a, b)
 
         if abs(d) < self.linearTolerance:
             desired.xVel = 0
@@ -103,6 +108,7 @@ class GoalController:
         return desired
 
     def normalizeHalfPi(self, alpha):
+        alpha = self.normalizePi(alpha)
         if alpha > pi/2:
             return alpha - pi
         elif alpha < -pi/2:

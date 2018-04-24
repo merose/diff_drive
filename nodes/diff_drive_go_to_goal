@@ -98,27 +98,25 @@ class GoToGoalNode:
             self.goal = None
 
     def odomCallback(self, newPose):
-        self.pose = pose.Pose()
-        pos = newPose.pose.pose.position
-        orientation = newPose.pose.pose.orientation
-        self.pose.x = pos.x
-        self.pose.y = pos.y
-        self.pose.theta = 2 * acos(orientation.w)
+        self.pose = self.get_angle_pose(newPose.pose.pose)
 
     def goalCallback(self, goal):
-        self.goal = pose.Pose()
-        pos = goal.pose.position
-        q = [goal.pose.orientation.x,
-             goal.pose.orientation.y,
-             goal.pose.orientation.z,
-             goal.pose.orientation.w]
-        roll, pitch, yaw = euler_from_quaternion(q)
-        self.goal.x = pos.x
-        self.goal.y = pos.y
-        self.goal.theta = yaw
-
+        self.goal = self.get_angle_pose(goal.pose)
         rospy.loginfo('Goal: (%f,%f,%f)', self.goal.x, self.goal.y,
                       self.goal.theta)
+
+    def get_angle_pose(self, quaternion_pose):
+        q = [quaternion_pose.orientation.x,
+             quaternion_pose.orientation.y,
+             quaternion_pose.orientation.z,
+             quaternion_pose.orientation.w]
+        roll, pitch, yaw = euler_from_quaternion(q)
+
+        angle_pose = pose.Pose()
+        angle_pose.x = quaternion_pose.position.x
+        angle_pose.y = quaternion_pose.position.y
+        angle_pose.theta = yaw
+        return angle_pose
 
 if __name__ == '__main__':
     try:
