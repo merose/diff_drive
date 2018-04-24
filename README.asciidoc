@@ -27,6 +27,22 @@ The nodes in this package are designed with these considerations:
 * This package should integrate cleanly with the navigation stack, perhaps with remappings.
 * Nodes should use standard topic and parameter names used by the navigation stack, but should allow remapping.
 
+== Demo
+
+To see all the nodes in this package in action, you can launch a demo from ROS. There are no
+dependencies other than the standard ROS packages.
+
+     roslaunch diff_drive demo.launch
+     
+This launches _rviz_ as part of the demo, and shows the robot position as a small coordinate system on
+a 0.25m grid. In rviz you can move the robot by clicking the _2D Nav Goal_ button in the tools panel at the top.
+Then click and drag within the grid to set the robot goal position and heading. The mock robot will move to
+that new pose, which you can see by the movement of the robot axes.
+
+In the demo, both forward and backward movement is allowed, so if the goal position is behind the robot,
+it will move backward. You can force the robot to move foward only by setting the parameter `~forwardMovementOnly`
+to `true`.
+
 == ROS API
 
 === 1. diff_drive_controller
@@ -174,9 +190,10 @@ The control law for determining the linear and angular velocity to move toward t
     v = Kp * d
     w = Ka*a + Kb*b
 
-See _Autonomous Mobile Robots, Second Edition_ by Siegwart et. al., section 3.6.2.4. Here I have changed the sign of _b_ (beta) and _K~b~_ to make the math simpler.
+See _Autonomous Mobile Robots, Second Edition_ by Siegwart et. al., section 3.6.2.4. In this code, when the robot
+is near enough to the goal, _v_ is set to zero, and _w_ is simply _Kb*b_.
 
-To ensure convergence toward the goal, _K~p~_, _K~a~_, and _K~b~_ must all be positive, and _K~a~_
+To ensure convergence toward the goal, _K~p~_ and _K~a~_ must be positive, _K~b~_ must be negative, and _K~a~_
 must be greater than _K~p~_. To ensure robust convergence, so that the robot never changes direction,
 _K~a~_ - 5/3*_K~b~_ - 2/pi*_K~p~_ must be greater than zero.
 
