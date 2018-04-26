@@ -7,9 +7,11 @@ from tf.transformations import euler_from_quaternion
 from geometry_msgs.msg import Twist, PoseStamped
 from nav_msgs.msg import Odometry
 from std_msgs.msg import Float32, Bool
+import actionlib
 
 from diff_drive import goal_controller
 from diff_drive import pose
+from diff_drive.msg import GoToPoseAction, GoToPoseGoal, GoToPoseResult
 
 class GoToGoalNode:
 
@@ -18,6 +20,16 @@ class GoToGoalNode:
 
     def main(self):
         rospy.init_node('diff_drive_go_to_goal')
+
+        self.action_name = 'diff_drive_go_to_goal'
+        self.action_server \
+            = actionlib.SimpleActionServer(self.action_name, GoToPoseAction,
+                                           execute_cb=self.on_execute,
+                                           auto_start=False)
+
+        self.action_client = actionlib.SimpleActionClient(
+            'diff_drive_go_to_goal', GoToPoseAction)
+
         self.distPub = rospy.Publisher('~distance_to_goal',
                                        Float32, queue_size=10)
         self.twistPub = rospy.Publisher('cmd_vel',
@@ -32,8 +44,9 @@ class GoToGoalNode:
         self.goal_achieved_pub = rospy.Publisher('goal_achieved', Bool,
                                                  queue_size=1)
 
-        self.rate = rospy.get_param('~rate', 10.0)
-        self.dT = 1 / self.rate
+        rate = rospy.get_param('~rate', 10.0)
+        self.rate = rospy.Rate(rate)
+        self.dT = 1 / rate
         self.kP = rospy.get_param('~kP', 3.0)
         self.kA = rospy.get_param('~kA', 8.0)
         self.kB = rospy.get_param('~kB', -1.5)
@@ -58,13 +71,31 @@ class GoToGoalNode:
 
         self.initPose()
         self.goal = None
-        
-        rate = rospy.Rate(self.rate)
         self.lastTwistTime = rospy.get_time()
-        while not rospy.is_shutdown():
-            if self.goal is not None:
-                self.publish()
-            rate.sleep()
+
+        self.action_server.start()
+        rospy.spin()
+
+    def on_execute(self, goal):
+        self.goal = self.get_angle_pose(goal.pose.pose)
+        rospy.loginfo('Goal: (%f,%f,%f)', self.goal.x, self.goal.y,
+                      self.goal.theta)
+
+        success = True
+        while not rospy.is_shutdown() and self.goal is not None:
+            # Allow client to preempt the goal.
+            if self.action_server.is_preempt_requested():
+                rospy.loginfo('Goal preempted')
+                self.send_velocity(0, 0)
+                self.action_server.set_preempted()
+                success = False
+                break
+            self.publish()
+            self.rate.sleep()
+
+        result = GoToPoseResult()
+        result.success = success
+        self.action_server.set_succeeded(result)
 
     def initPose(self):
         self.pose = pose.Pose()
@@ -90,10 +121,7 @@ class GoToGoalNode:
         d = self.controller.getGoalDistance(self.pose, self.goal)
         self.distPub.publish(d)
 
-        twist = Twist()
-        twist.linear.x = desired.xVel
-        twist.angular.z = desired.thetaVel
-        self.twistPub.publish(twist)
+        self.send_velocity(desired.xVel, desired.thetaVel)
 
         # Forget the goal if achieved.
         if self.controller.atGoal(self.pose, self.goal):
@@ -103,13 +131,20 @@ class GoToGoalNode:
             msg.data = True
             self.goal_achieved_pub.publish(msg)
 
+    def send_velocity(self, xVel, thetaVel):
+        twist = Twist()
+        twist.linear.x = xVel
+        twist.angular.z = thetaVel
+        self.twistPub.publish(twist)
+
     def odomCallback(self, newPose):
         self.pose = self.get_angle_pose(newPose.pose.pose)
 
     def goalCallback(self, goal):
-        self.goal = self.get_angle_pose(goal.pose)
-        rospy.loginfo('Goal: (%f,%f,%f)', self.goal.x, self.goal.y,
-                      self.goal.theta)
+        self.action_client.wait_for_server()
+        action_goal = GoToPoseGoal()
+        action_goal.pose.pose = goal.pose
+        self.action_client.send_goal(action_goal)
 
     def get_angle_pose(self, quaternion_pose):
         q = [quaternion_pose.orientation.x,

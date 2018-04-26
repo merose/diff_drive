@@ -15,6 +15,8 @@
 
   <depend>std_msgs</depend>
   <depend>geometry_msgs</depend>
+  <depend>actionlib_msgs</depend>
   <build_depend>rostest</build_depend>
+  <depend>message_generation</depend>
   
 </package>

@@ -1,7 +1,21 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(diff_drive)
 
-find_package(catkin REQUIRED)
+find_package(catkin REQUIRED COMPONENTS
+  rospy
+  std_msgs
+  nav_msgs
+  geometry_msgs
+  tf
+  tf2
+  actionlib
+  actionlib_msgs
+)
+
+add_action_files(
+  DIRECTORY action
+  FILES GoToPose.action
+)
 
 if (CATKIN_ENABLE_TESTING)
   catkin_add_nosetests(tests)
@@ -13,8 +27,6 @@ if (CATKIN_ENABLE_TESTING)
 #  add_rostest(tests/your_second_rostest.test)
 endif()
 
-catkin_package()
-
 catkin_install_python(
     PROGRAMS
         nodes/diff_drive_odometry
@@ -24,3 +36,11 @@ catkin_install_python(
     DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
 
 catkin_python_setup()
+
+generate_messages (
+  DEPENDENCIES actionlib_msgs std_msgs geometry_msgs
+)
+
+catkin_package(
+  CATKIN_DEPENDS actionlib_msgs
+)
