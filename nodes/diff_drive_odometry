@@ -6,10 +6,11 @@ from geometry_msgs.msg import Quaternion
 from geometry_msgs.msg import Twist
 from nav_msgs.msg import Odometry
 from std_msgs.msg import Int32
+from geometry_msgs.msg import PoseWithCovarianceStamped
 from tf.broadcaster import TransformBroadcaster
-from tf.transformations import quaternion_from_euler
+from tf.transformations import quaternion_from_euler, euler_from_quaternion
 from math import sin, cos
-
+from diff_drive.pose import Pose
 from diff_drive import odometry
 
 class OdometryNode:
@@ -27,6 +28,8 @@ class OdometryNode:
 
         rospy.Subscriber("lwheel_ticks", Int32, self.leftCallback)
         rospy.Subscriber("rwheel_ticks", Int32, self.rightCallback)
+        rospy.Subscriber("initialpose", PoseWithCovarianceStamped,
+                         self.on_initial_pose)
 
         self.ticksPerMeter = int(rospy.get_param('~ticks_per_meter'))
         self.wheelSeparation = float(rospy.get_param('~wheel_separation'))
@@ -73,6 +76,21 @@ class OdometryNode:
         odom.twist.twist.linear.x = pose.xVel
         odom.twist.twist.angular.z = pose.thetaVel
         self.odomPub.publish(odom)
+
+    def on_initial_pose(self, msg):
+        q = [msg.pose.pose.orientation.x,
+             msg.pose.pose.orientation.x,
+             msg.pose.pose.orientation.x,
+             msg.pose.pose.orientation.w]
+        roll, pitch, yaw = euler_from_quaternion(q)
+
+        pose = Pose()
+        pose.x = msg.pose.pose.position.x
+        pose.y = msg.pose.pose.position.y
+        pose.theta = yaw
+
+        rospy.loginfo('Setting initial pose to %s', pose)
+        self.odometry.setPose(pose)
 
     def leftCallback(self, msg):
         self.odometry.updateLeftWheel(msg.data)

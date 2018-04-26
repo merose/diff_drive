@@ -76,4 +76,4 @@ class Odometry:
         return self.pose;
 
     def setPose(self, newPose):
-        pose = newPose
+        self.pose = newPose
