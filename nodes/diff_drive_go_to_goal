@@ -6,7 +6,7 @@ from math import pi, asin, acos
 from tf.transformations import euler_from_quaternion
 from geometry_msgs.msg import Twist, PoseStamped
 from nav_msgs.msg import Odometry
-from std_msgs.msg import Float32
+from std_msgs.msg import Float32, Bool
 
 from diff_drive import goal_controller
 from diff_drive import pose
@@ -28,6 +28,9 @@ class GoToGoalNode:
 
         rospy.Subscriber('odom', Odometry, self.odomCallback)
         rospy.Subscriber('move_base_simple/goal', PoseStamped, self.goalCallback)
+
+        self.goal_achieved_pub = rospy.Publisher('goal_achieved', Bool,
+                                                 queue_size=1)
 
         self.rate = rospy.get_param('~rate', 10.0)
         self.dT = 1 / self.rate
@@ -96,6 +99,9 @@ class GoToGoalNode:
         if self.controller.atGoal(self.pose, self.goal):
             rospy.loginfo('Goal achieved')
             self.goal = None
+            msg = Bool()
+            msg.data = True
+            self.goal_achieved_pub.publish(msg)
 
     def odomCallback(self, newPose):
         self.pose = self.get_angle_pose(newPose.pose.pose)
