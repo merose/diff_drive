@@ -30,16 +30,16 @@ class GoToGoalNode:
         self.action_client = actionlib.SimpleActionClient(
             'diff_drive_go_to_goal', GoToPoseAction)
 
-        self.distPub = rospy.Publisher('~distance_to_goal',
-                                       Float32, queue_size=10)
-        self.twistPub = rospy.Publisher('cmd_vel',
-                                        Twist, queue_size=10)
+        self.dist_pub = rospy.Publisher('~distance_to_goal',
+                                        Float32, queue_size=10)
+        self.twist_pub = rospy.Publisher('cmd_vel',
+                                         Twist, queue_size=10)
 
-        self.nodeName = rospy.get_name()
-        rospy.loginfo("{0} started".format(self.nodeName))
+        self.node_name = rospy.get_name()
+        rospy.loginfo("{0} started".format(self.node_name))
 
-        rospy.Subscriber('odom', Odometry, self.odomCallback)
-        rospy.Subscriber('move_base_simple/goal', PoseStamped, self.goalCallback)
+        rospy.Subscriber('odom', Odometry, self.on_odometry)
+        rospy.Subscriber('move_base_simple/goal', PoseStamped, self.on_goal)
 
         self.goal_achieved_pub = rospy.Publisher('goal_achieved', Bool,
                                                  queue_size=1)
@@ -47,31 +47,35 @@ class GoToGoalNode:
         rate = rospy.get_param('~rate', 10.0)
         self.rate = rospy.Rate(rate)
         self.dT = 1 / rate
+
         self.kP = rospy.get_param('~kP', 3.0)
         self.kA = rospy.get_param('~kA', 8.0)
         self.kB = rospy.get_param('~kB', -1.5)
-        self.linearTolerance = rospy.get_param('~linear_tolerance', 0.05)
-        self.angularTolerance = rospy.get_param('~angular_tolerance',
-                                                3/180*pi)
-        self.maxLinearSpeed = rospy.get_param('~max_linear_speed', 0.1)
-        self.maxAngularSpeed = rospy.get_param('~max_angular_speed', 0.3)
+        self.controller.set_constants(self.kP, self.kA, self.kB)
 
-        self.controller.setConstants(self.kP, self.kA, self.kB)
-        self.controller.setLinearTolerance(self.linearTolerance)
-        self.controller.setAngularTolerance(self.angularTolerance)
-        self.controller.setMaxLinearSpeed(self.maxLinearSpeed)
-        self.controller.setMaxAngularSpeed(self.maxAngularSpeed)
+        self.controller.set_linear_tolerance(
+            rospy.get_param('~linear_tolerance', 0.05))
+        self.controller.set_angular_tolerance(
+            rospy.get_param('~angular_tolerance', 3/180*pi))
+
+        self.controller.set_max_linear_speed(
+            rospy.get_param('~max_linear_speed', 0.1))
+        self.controller.set_max_angular_speed(
+            rospy.get_param('~max_angular_speed', 0.3))
+        self.controller.set_max_linear_acceleration(
+            rospy.get_param('~max_linear_acceleration', 0.1))
+        self.controller.set_max_angular_acceleration(
+            rospy.get_param('~max_angular_acceleration', 0.3))
 
         # Set whether to allow movement backward. Backward movement is
         # safe if the robot can avoid obstacles while traveling in
         # reverse. We default to forward movement only since many
         # sensors are front-facing.
-        self.controller.setForwardMovementOnly(
+        self.controller.set_forward_movement_only(
             rospy.get_param('~forwardMovementOnly', True))
 
-        self.initPose()
+        self.init_pose()
         self.goal = None
-        self.lastTwistTime = rospy.get_time()
 
         self.action_server.start()
         rospy.spin()
@@ -97,18 +101,18 @@ class GoToGoalNode:
         result.success = success
         self.action_server.set_succeeded(result)
 
-    def initPose(self):
+    def init_pose(self):
         self.pose = pose.Pose()
         self.pose.x = 0
         self.pose.y = 0
         self.pose.theta = 0
 
     def publish(self):
-        if self.controller.atGoal(self.pose, self.goal):
+        if self.controller.at_goal(self.pose, self.goal):
             desired = pose.Pose()
         else:
-            desired = self.controller.getVelocity(self.pose, self.goal,
-                                                  self.dT)
+            desired = self.controller.get_velocity(self.pose, self.goal,
+                                                   self.dT)
 
         # if self.goal is not None \
         #    and (desired.xVel!=0.0 or desired.thetaVel!=0.0):
@@ -118,13 +122,13 @@ class GoToGoalNode:
         #         self.goal.x, self.goal.y, self.goal.theta,
         #         desired.xVel, desired.thetaVel)
 
-        d = self.controller.getGoalDistance(self.pose, self.goal)
-        self.distPub.publish(d)
+        d = self.controller.get_goal_distance(self.pose, self.goal)
+        self.dist_pub.publish(d)
 
         self.send_velocity(desired.xVel, desired.thetaVel)
 
         # Forget the goal if achieved.
-        if self.controller.atGoal(self.pose, self.goal):
+        if self.controller.at_goal(self.pose, self.goal):
             rospy.loginfo('Goal achieved')
             self.goal = None
             msg = Bool()
@@ -135,12 +139,12 @@ class GoToGoalNode:
         twist = Twist()
         twist.linear.x = xVel
         twist.angular.z = thetaVel
-        self.twistPub.publish(twist)
+        self.twist_pub.publish(twist)
 
-    def odomCallback(self, newPose):
+    def on_odometry(self, newPose):
         self.pose = self.get_angle_pose(newPose.pose.pose)
 
-    def goalCallback(self, goal):
+    def on_goal(self, goal):
         self.action_client.wait_for_server()
         action_goal = GoToPoseGoal()
         action_goal.pose.pose = goal.pose

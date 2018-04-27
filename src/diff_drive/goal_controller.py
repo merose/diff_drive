@@ -12,51 +12,55 @@ class GoalController:
         self.kP = 3
         self.kA = 8
         self.kB = -1.5
-        self.maxLinearSpeed = 1E9
-        self.maxAngularSpeed = 1E9
-        self.maxLinearAcceleration = 1E9
-        self.linearTolerance = 0.025 # 2.5cm
-        self.angularTolerance = 3/180*pi # 3 degrees
-        self.forwardMovementOnly = False
+        self.max_linear_speed = 1E9
+        self.max_angular_speed = 1E9
+        self.max_linear_acceleration = 1E9
+        self.max_angular_acceleration = 1E9
+        self.linear_tolerance = 0.025 # 2.5cm
+        self.angular_tolerance = 3/180*pi # 3 degrees
+        self.forward_movement_only = False
 
-    def setConstants(self, kP, kA, kB):
+    def set_constants(self, kP, kA, kB):
         self.kP = kP
         self.kA = kA
         self.kB = kB
 
-    def setMaxLinearSpeed(self, speed):
-        self.maxLinearSpeed = speed
+    def set_max_linear_speed(self, speed):
+        self.max_linear_speed = speed
 
-    def setMaxAngularSpeed(self, speed):
-        self.maxAngularSpeed = speed
+    def set_max_angular_speed(self, speed):
+        self.max_angular_speed = speed
 
-    def setMaxLinearAcceleration(self, accel):
-        self.maxLinearAcceleration = accel
+    def set_max_linear_acceleration(self, accel):
+        self.max_linear_acceleration = accel
 
-    def setLinearTolerance(self, tolerance):
-        self.linearTolerance = tolerance
+    def set_max_angular_acceleration(self, accel):
+        self.max_angular_acceleration = accel
 
-    def setAngularTolerance(self, tolerance):
-        self.angularTolerance = tolerance
+    def set_linear_tolerance(self, tolerance):
+        self.linear_tolerance = tolerance
 
-    def setForwardMovementOnly(self, forwardOnly):
-        self.forwardMovementOnly = forwardOnly
+    def set_angular_tolerance(self, tolerance):
+        self.angular_tolerance = tolerance
 
-    def getGoalDistance(self, cur, goal):
+    def set_forward_movement_only(self, forward_only):
+        self.forward_movement_only = forward_only
+
+    def get_goal_distance(self, cur, goal):
         if goal is None:
             return 0
         diffX = cur.x - goal.x
         diffY = cur.y - goal.y
         return sqrt(diffX*diffX + diffY*diffY)
 
-    def atGoal(self, cur, goal):
+    def at_goal(self, cur, goal):
         if goal is None:
             return True
-        d = self.getGoalDistance(cur, goal)
-        dTh = abs(self.normalizePi(cur.theta - goal.theta))
-        return d < self.linearTolerance and dTh < self.angularTolerance
+        d = self.get_goal_distance(cur, goal)
+        dTh = abs(self.normalize_pi(cur.theta - goal.theta))
+        return d < self.linear_tolerance and dTh < self.angular_tolerance
 
-    def getVelocity(self, cur, goal, dT):
+    def get_velocity(self, cur, goal, dT):
         desired = Pose()
 
         goal_heading = atan2(goal.y - cur.y, goal.x - cur.x)
@@ -65,25 +69,25 @@ class GoalController:
         # In Automomous Mobile Robots, they assume theta_G=0. So for
         # the error in heading, we have to adjust theta based on the
         # (possibly non-zero) goal theta.
-        theta = self.normalizePi(cur.theta - goal.theta)
+        theta = self.normalize_pi(cur.theta - goal.theta)
         b = -theta - a
 
         # rospy.loginfo('cur=%f goal=%f a=%f b=%f', cur.theta, goal_heading,
         #               a, b)
 
-        d = self.getGoalDistance(cur, goal)
-        if self.forwardMovementOnly:
+        d = self.get_goal_distance(cur, goal)
+        if self.forward_movement_only:
             direction = 1
-            a = self.normalizePi(a)
-            b = self.normalizePi(b)
+            a = self.normalize_pi(a)
+            b = self.normalize_pi(b)
         else:
             direction = self.sign(cos(a))
-            a = self.normalizeHalfPi(a)
-            b = self.normalizeHalfPi(b)
+            a = self.normalize_half_pi(a)
+            b = self.normalize_half_pi(b)
 
         # rospy.loginfo('After normalization, a=%f b=%f', a, b)
 
-        if abs(d) < self.linearTolerance:
+        if abs(d) < self.linear_tolerance:
             desired.xVel = 0
             desired.thetaVel = self.kB * theta
         else:
@@ -91,14 +95,14 @@ class GoalController:
             desired.thetaVel = self.kA*a + self.kB*b
 
         # Adjust velocities if X velocity is too high.
-        if abs(desired.xVel) > self.maxLinearSpeed:
-            ratio = self.maxLinearSpeed / abs(desired.xVel)
+        if abs(desired.xVel) > self.max_linear_speed:
+            ratio = self.max_linear_speed / abs(desired.xVel)
             desired.xVel *= ratio
             desired.thetaVel *= ratio
 
         # Adjust velocities if turning velocity too high.
-        if abs(desired.thetaVel) > self.maxAngularSpeed:
-            ratio = self.maxAngularSpeed / abs(desired.thetaVel)
+        if abs(desired.thetaVel) > self.max_angular_speed:
+            ratio = self.max_angular_speed / abs(desired.thetaVel)
             desired.xVel *= ratio
             desired.thetaVel *= ratio
 
@@ -107,8 +111,8 @@ class GoalController:
 
         return desired
 
-    def normalizeHalfPi(self, alpha):
-        alpha = self.normalizePi(alpha)
+    def normalize_half_pi(self, alpha):
+        alpha = self.normalize_pi(alpha)
         if alpha > pi/2:
             return alpha - pi
         elif alpha < -pi/2:
@@ -116,13 +120,12 @@ class GoalController:
         else:
             return alpha
 
-    def normalizePi(self, alpha):
-        if alpha > pi:
-            return alpha - 2*pi
-        elif alpha < -pi:
-            return alpha + 2*pi
-        else:
-            return alpha
+    def normalize_pi(self, alpha):
+        while alpha > pi:
+            alpha -= 2*pi
+        while alpha < -pi:
+            alpha += 2*pi
+        return alpha
 
     def sign(self, x):
         if x >= 0:
