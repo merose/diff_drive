@@ -13,7 +13,9 @@ class GoalController:
         self.kA = 8
         self.kB = -1.5
         self.max_linear_speed = 1E9
+        self.min_linear_speed = 0
         self.max_angular_speed = 1E9
+        self.min_angular_speed = 0
         self.max_linear_acceleration = 1E9
         self.max_angular_acceleration = 1E9
         self.linear_tolerance = 0.025 # 2.5cm
@@ -28,8 +30,14 @@ class GoalController:
     def set_max_linear_speed(self, speed):
         self.max_linear_speed = speed
 
+    def set_min_linear_speed(self, speed):
+        self.min_linear_speed = speed
+
     def set_max_angular_speed(self, speed):
         self.max_angular_speed = speed
+
+    def set_min_angular_speed(self, speed):
+        self.min_angular_speed = speed
 
     def set_max_linear_acceleration(self, accel):
         self.max_linear_acceleration = accel
@@ -108,6 +116,16 @@ class GoalController:
 
         # TBD: Adjust velocities if linear or angular acceleration
         # too high.
+
+        # Adjust velocities if too low, so robot does not stall.
+        if abs(desired.xVel) > 0 and abs(desired.xVel) < self.min_linear_speed:
+            ratio = self.min_linear_speed / abs(desired.xVel)
+            desired.xVel *= ratio
+            desired.thetaVel *= ratio
+        elif desired.xVel==0 and abs(desired.thetaVel) < self.min_angular_speed:
+            ratio = self.min_angular_speed / abs(desired.thetaVel)
+            desired.xVel *= ratio
+            desired.thetaVel *= ratio
 
         return desired
 
