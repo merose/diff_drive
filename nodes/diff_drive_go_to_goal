@@ -100,10 +100,10 @@ class GoToGoalNode:
                 break
             self.publish()
             self.rate.sleep()
-
-        result = GoToPoseResult()
-        result.success = success
-        self.action_server.set_succeeded(result)
+        if self.goal is None:  # Goal reached and cleared
+            result = GoToPoseResult()
+            result.success = success
+            self.action_server.set_succeeded(result)
 
     def init_pose(self):
         self.pose = pose.Pose()
