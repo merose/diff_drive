@@ -73,8 +73,10 @@ Distance between the two wheels (meters).
 `~rate` (int, default: 50)::
 The rate that the output velocity target messages will be published (Hz).
 
-`~timeout_ticks` (int, default: 2)::
-The number of velocity target messages that will be published after the last twist message is received.
+`~timeout` (int, default: 0.2)::
+The maximum number of seconds expected between `cmd_vel` messages. If `cmd_vel`
+is not received before this limit, the controller will assume the commanding
+node has died and will set the desired wheel rates to zero, to stop the robot.
 
 === 2. diff_drive_odometry
 
